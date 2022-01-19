@@ -37,10 +37,9 @@ def chase(target, user_args):
                             )
                             new_targets.append(d[1])
 
-            else:
-                if "HUNTER_RELATED" in d[0]:
-                    c.good_news(
-                        "Chasing {new_target} as new target".format(new_target=d[1])
-                    )
-                    new_targets.append(d[1])
+            elif "HUNTER_RELATED" in d[0]:
+                c.good_news(
+                    "Chasing {new_target} as new target".format(new_target=d[1])
+                )
+                new_targets.append(d[1])
     return new_targets

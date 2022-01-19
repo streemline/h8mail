@@ -46,12 +46,10 @@ def make_temp_directory():
     """
     temp_dir = tempfile.mkdtemp()
     try:
-        fd_emails = open(os.path.join(temp_dir, "test-emails.txt"), "w")
-        fd_emails.writelines(emails)
-        fd_emails.close()
-        fd_creds = open(os.path.join(temp_dir, "test-creds.txt"), "w")
-        fd_creds.writelines(creds)
-        fd_creds.close()
+        with open(os.path.join(temp_dir, "test-emails.txt"), "w") as fd_emails:
+            fd_emails.writelines(emails)
+        with open(os.path.join(temp_dir, "test-creds.txt"), "w") as fd_creds:
+            fd_creds.writelines(creds)
         tar = tarfile.open(os.path.join(temp_dir, "test-creds.tar.gz"), "w:gz")
         tar.add(os.path.join(temp_dir, "test-creds.txt"))
         tar.close()

@@ -82,9 +82,8 @@ def fetch_emails(target, user_args):
     Can be loosy to skip email pattern search.
     """
     if user_args.loose or user_args.user_query is not None:
-        t = target.split(" ")
         # print(t)
-        return t
+        return target.split(" ")
     e = re.findall(r"[\w\.-]+@[\w\.-]+", target)
     if e:
         # print(", ".join(e), c.reset)
@@ -178,7 +177,7 @@ def check_latest_version():
         )
         data = response.json()
         latest = data["tag_name"]
-        if __version__ == data["tag_name"]:
+        if __version__ == latest:
             c.good_news("h8mail is up to date")
         else:
             c.bad_news(

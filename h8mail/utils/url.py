@@ -81,15 +81,12 @@ def target_urls(user_args):
         urls = []
         emails = []
         for arg in user_args.user_urls:
-            if os.path.isfile(arg):
-                e = get_urls_from_file(arg)
-            else:
-                e = fetch_urls(arg)
+            e = get_urls_from_file(arg) if os.path.isfile(arg) else fetch_urls(arg)
             if e is None:
                 continue
             else:
                 urls.extend(e)
-        
+
         for url in urls:
             e = worker_url(url)
             # e = get_emails_from_file(tmpfile, user_args)
