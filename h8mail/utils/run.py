@@ -58,20 +58,16 @@ def target_factory(targets, user_args):
 
     for counter, t in enumerate(targets):
         c.info_news("Target factory started for {target}".format(target=t))
-        if user_args.debug:
-            current_target = target(t, debug=True)
-        else:
-            current_target = target(t)
-        if not skip_default_queries:
-            if not user_args.skip_defaults:
-                current_target.get_hunterio_public()
-                ## emailrep seems to insta-block h8mail user agent without a key
-                # if api_keys is None or "emailrep" not in api_keys:
-                #     current_target.get_emailrepio()
-                # elif (
-                #     api_keys is not None and "emailrep" in api_keys and query == "email"
-                # ):
-                #     current_target.get_emailrepio(api_keys["emailrep"])
+        current_target = target(t, debug=True) if user_args.debug else target(t)
+        if not skip_default_queries and not user_args.skip_defaults:
+            current_target.get_hunterio_public()
+            ## emailrep seems to insta-block h8mail user agent without a key
+            # if api_keys is None or "emailrep" not in api_keys:
+            #     current_target.get_emailrepio()
+            # elif (
+            #     api_keys is not None and "emailrep" in api_keys and query == "email"
+            # ):
+            #     current_target.get_emailrepio(api_keys["emailrep"])
 
         if api_keys is not None:
             if (
@@ -162,18 +158,17 @@ def h8mail(user_args):
             user_args.user_targets = []
             user_args.user_targets.extend(targets)
 
-    else:  # Find targets in user input or file
-        if user_args.user_targets is not None:
-            for arg in user_args.user_targets:
-                user_stdin_target = fetch_emails(arg, user_args)
-                if os.path.isfile(arg):
-                    c.info_news("Reading from file " + arg)
-                    targets.extend(get_emails_from_file(arg, user_args))
-                elif user_stdin_target:
-                    targets.extend(user_stdin_target)
-                else:
-                    c.bad_news("No targets found in user input. Quitting")
-                    exit(0)
+    elif user_args.user_targets is not None:
+        for arg in user_args.user_targets:
+            user_stdin_target = fetch_emails(arg, user_args)
+            if os.path.isfile(arg):
+                c.info_news("Reading from file " + arg)
+                targets.extend(get_emails_from_file(arg, user_args))
+            elif user_stdin_target:
+                targets.extend(user_stdin_target)
+            else:
+                c.bad_news("No targets found in user input. Quitting")
+                exit(0)
 
     c.info_news("Removing duplicates")
     targets = list(set(targets))

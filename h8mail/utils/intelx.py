@@ -18,7 +18,10 @@ class intelx:
 		"""
 		Initialize API by setting the API key.
 		"""
-		if key == "01a61412-7629-4288-b18a-b287266f2798" or key == "ac572eea-3902-4e9a-972d-f5996d76174c":
+		if key in [
+		    "01a61412-7629-4288-b18a-b287266f2798",
+		    "ac572eea-3902-4e9a-972d-f5996d76174c",
+		]:
 			self.API_ROOT 	= "https://public.intelx.io"
 		else:
 			self.API_ROOT 	= "https://2.intelx.io"
@@ -47,11 +50,7 @@ class intelx:
 		"""
 		Cleans up treeview output from the API.
 		"""
-		lines = []
-		for line in treeview.split("\r\n"):
-			if '<a href' not in line:
-				lines.append(line)
-		return lines
+		return [line for line in treeview.split("\r\n") if '<a href' not in line]
 	
 	def GET_CAPABILITIES(self):
 		"""
@@ -87,7 +86,7 @@ class intelx:
 		- 8: text view of word file
 		"""
 		format = 0
-		if(mediatype==23 or mediatype==9):	# HTML
+		if mediatype in [23, 9]:	# HTML
 			format = 7
 		elif(mediatype==15):				# PDF
 			format = 6
@@ -239,10 +238,7 @@ class intelx:
 			"terminate": terminate
 		}
 		r = requests.post(self.API_ROOT + '/intelligent/search', headers=h, json=p)
-		if r.status_code == 200:
-			return r.json()['id']
-		else:
-			return r.status_code
+		return r.json()['id'] if r.status_code == 200 else r.status_code
 
 	def INTEL_SEARCH_RESULT(self, id, limit):
 		"""
@@ -328,10 +324,7 @@ class intelx:
 		"""
 		h = {'x-key' : self.API_KEY, 'User-Agent': self.USER_AGENT}
 		r = requests.get(self.API_ROOT + f'/intelligent/search/result?id={id}&limit={limit}', headers=h)
-		if(r.status_code == 200):
-			return r.json()
-		else:
-			return r.status_code
+		return r.json() if (r.status_code == 200) else r.status_code
 
 	def INTEL_TERMINATE_SEARCH(self, uuid):
 		"""
@@ -339,10 +332,7 @@ class intelx:
 		"""
 		h = {'x-key' : self.API_KEY, 'User-Agent': self.USER_AGENT}
 		r = requests.get(self.API_ROOT + f'/intelligent/search/terminate?id={uuid}', headers=h)
-		if(r.status_code == 200):
-			return True
-		else:
-			return r.status_code
+		return True if (r.status_code == 200) else r.status_code
 	
 	def PHONEBOOK_SEARCH(self, term, maxresults=100, buckets=[], timeout=5, datefrom="", dateto="", sort=4, media=0, terminate=[], target=0):
 		"""
@@ -363,10 +353,7 @@ class intelx:
 			"target": target
 		}
 		r = requests.post(self.API_ROOT + '/phonebook/search', headers=h, json=p)
-		if r.status_code == 200:
-			return r.json()['id']
-		else:
-			return r.status_code
+		return r.json()['id'] if r.status_code == 200 else r.status_code
 
 	def PHONEBOOK_SEARCH_RESULT(self, id, limit=1000, offset=-1):
 		"""
@@ -383,26 +370,21 @@ class intelx:
 		"""
 		h = {'x-key' : self.API_KEY, 'User-Agent': self.USER_AGENT}
 		r = requests.get(self.API_ROOT + f'/phonebook/search/result?id={id}&limit={limit}&offset={offset}', headers=h)
-		if(r.status_code == 200):
-			return r.json()
-		else:
-			return r.status_code
+		return r.json() if (r.status_code == 200) else r.status_code
 
 	def query_results(self, id, limit):
 		"""
 		Query the results from an intelligent search.
 		Meant for usage within loops.
 		"""
-		results = self.INTEL_SEARCH_RESULT(id, limit)
-		return results
+		return self.INTEL_SEARCH_RESULT(id, limit)
 
 	def query_pb_results(self, id, limit):
 		"""
 		Query the results fom a phonebook search.
 		Meant for usage within loops.
 		"""
-		results = self.PHONEBOOK_SEARCH_RESULT(id, limit)
-		return results
+		return self.PHONEBOOK_SEARCH_RESULT(id, limit)
 
 	def search(self, term, maxresults=100, buckets=[], timeout=5, datefrom="", dateto="", sort=4, media=0, terminate=[]):
 		"""
@@ -494,7 +476,7 @@ class intelx:
 		if(len(str(search_id)) <= 3):
 			print(f"[!] intelx.INTEL_SEARCH() Received {self.get_error(search_id)}")
 			sys.exit()
-		while done == False:
+		while not done:
 			time.sleep(1) # lets give the backend a chance to aggregate our data
 			r = self.query_results(search_id, maxresults)
 			for a in r['records']:
@@ -517,7 +499,7 @@ class intelx:
 		if(len(str(search_id)) <= 3):
 			print(f"[!] intelx.PHONEBOOK_SEARCH() Received {self.get_error(search_id)}")
 			sys.exit()
-		while done == False:
+		while not done:
 			time.sleep(1) # lets give the backend a chance to aggregate our data
 			r = self.query_pb_results(search_id, maxresults)
 			results.append(r)

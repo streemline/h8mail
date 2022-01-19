@@ -58,11 +58,7 @@ class target:
             )
 
     def not_exists(self, pattern):
-        for d in self.data:
-            if len(d) >= 2:
-                if d[1] == pattern:
-                    return False
-        return True
+        return not any(len(d) >= 2 and d[1] == pattern for d in self.data)
 
     def make_request(
         self,
@@ -208,9 +204,7 @@ class target:
             from .localsearch import local_search
             from os import remove, fspath
 
-            maxfile = 10
-            if api_keys["intelx_maxfile"]:
-                maxfile = int(api_keys["intelx_maxfile"])
+            maxfile = int(api_keys["intelx_maxfile"]) if api_keys["intelx_maxfile"] else 10
             search = intelx_getsearch(self.target, intelx, maxfile)
             if self.debug:
                 import json
@@ -522,10 +516,9 @@ class target:
                                 result["hash"].strip() + " : " + result["salt"].strip(),
                             )
                         )
-                        self.pwned += 1
                     else:
                         self.data.append(("SNUS_HASH", result["hash"]))
-                        self.pwned += 1
+                    self.pwned += 1
                 if result["lastip"]:
                     self.data.append(("SNUS_LASTIP", result["lastip"]))
                     self.pwned += 1
@@ -742,7 +735,7 @@ class target:
         try:
             if user_query == "hash":
                 user_query == "hashed_password"
-            if user_query == "ip":
+            elif user_query == "ip":
                 user_query == "ip_address"
 
             c.info_news("[" + self.target + "]>[dehashed]")
@@ -839,47 +832,47 @@ class target:
                     url, timeout=60
                 )
             if req.status_code == 200:
-                    response = req.json()
-                    if response["data"] is not None:
-                        for result in response["data"]:
-                            if "email" in result and "email" not in user_query:
-                                self.data.append(("BREACHDR_EMAIL", result["email"]))
-                            if "password" in result:
-                                self.data.append(("BREACHDR_PASS", result["password"]))
-                            if "hash" in result:
-                                self.data.append(("BREACHDR_HASH", result["hash"]))
-                            if "source" in result:
-                                self.data.append(("BREACHDR_SOURCE", result["source"]))
-                                self.pwned += 1
-                    # Follow up with an aggregated leak sources query
-                    url_src = "https://breachdirectory.tk/api/index?username={user}&password={passw}&func={mode}&term={target}".format(user=user, passw=passw, mode="sources", target=self.target)
-                    req = self.make_request(
-                        url_src, timeout=60
-                    )
-                    if req.status_code == 200:
-                        response = req.json()
-                        if response["sources"] is not None:
-                            for result in response["sources"]:
-                                self.data.append(("BREACHDR_EXTSRC", result))
-                    ## If using the 'auto' mode instead of pastes
-                    #     c.good_news(
-                    #         "Found {num} entries for {target} using breachdirectory.tk".format(
-                    #             num=str(response["found"]), target=self.target
-                    #         )
-                    #     )
+                response = req.json()
+                if response["data"] is not None:
+                    for result in response["data"]:
+                        if "email" in result and "email" not in user_query:
+                            self.data.append(("BREACHDR_EMAIL", result["email"]))
+                        if "password" in result:
+                            self.data.append(("BREACHDR_PASS", result["password"]))
+                        if "hash" in result:
+                            self.data.append(("BREACHDR_HASH", result["hash"]))
+                        if "source" in result:
+                            self.data.append(("BREACHDR_SOURCE", result["source"]))
+                            self.pwned += 1
+                # Follow up with an aggregated leak sources query
+                url_src = "https://breachdirectory.tk/api/index?username={user}&password={passw}&func={mode}&term={target}".format(user=user, passw=passw, mode="sources", target=self.target)
+                req = self.make_request(
+                    url_src, timeout=60
+                )
+                            ## If using the 'auto' mode instead of pastes
+                            #     c.good_news(
+                            #         "Found {num} entries for {target} using breachdirectory.tk".format(
+                            #             num=str(response["found"]), target=self.target
+                            #         )
+                            #     )
 
-                    # for result in response["result"]:
-                    #     if result["has_password"] is True:
-                    #         self.data.append(("BREACHDR_PASS", result["password"]))
-                    #         self.data.append(("BREACHDR_MD5", result["md5"]))
-                    #         if result["sources"] == "Unverified":
-                    #             source = result["sources"]
-                    #         elif len(result["sources"]) > 1:
-                    #             source = ", ".join(result["sources"])
-                    #         else:
-                    #             source = result["sources"][0]
-                    #         self.data.append(("BREACHDR_SOURCE", source))
-                    #         self.pwned += 1
+                            # for result in response["result"]:
+                            #     if result["has_password"] is True:
+                            #         self.data.append(("BREACHDR_PASS", result["password"]))
+                            #         self.data.append(("BREACHDR_MD5", result["md5"]))
+                            #         if result["sources"] == "Unverified":
+                            #             source = result["sources"]
+                            #         elif len(result["sources"]) > 1:
+                            #             source = ", ".join(result["sources"])
+                            #         else:
+                            #             source = result["sources"][0]
+                            #         self.data.append(("BREACHDR_SOURCE", source))
+                            #         self.pwned += 1
+            if req.status_code == 200:
+                response = req.json()
+                if response["sources"] is not None:
+                    for result in response["sources"]:
+                        self.data.append(("BREACHDR_EXTSRC", result))
         except Exception as ex:
             c.bad_news(f"Breachdirectory error with {self.target}")
             print(ex)

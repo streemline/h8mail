@@ -21,14 +21,15 @@ def generate_source_arrays(pwned_data):
 
 
 def save_results_json(dest_json, target_obj_list):
-    data = {}
-    data['targets'] = []
+    data = {'targets': []}
     for t in target_obj_list:
-        current_target = {}
-        current_target["target"] = t.target
-        current_target["pwn_num"] = t.pwned
-        current_target["data"] = generate_source_arrays(t.data)
+        current_target = {
+            'target': t.target,
+            'pwn_num': t.pwned,
+            'data': generate_source_arrays(t.data),
+        }
+
         data['targets'].append(current_target)
-    
+
     with open(dest_json, 'w') as outfile:
         json.dump(data, outfile)
